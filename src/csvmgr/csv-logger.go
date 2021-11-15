@@ -49,6 +49,7 @@ func (c *CSVLogger) onMavlinkMessage() {
 	for {
 		select {
 		case <-c.Done:
+			log.Println("interrupt DONE")
 			return
 		case buffer, ok := <-c.Append:
 			if !ok {
@@ -66,7 +67,7 @@ func (c *CSVLogger) onMavlinkMessage() {
 
 			FlushWriter()(c.LogWriter)
 		case <-c.Interrupt:
-			log.Println("onEvent-> interrupt")
+			log.Println("onMavlinkMessage-> interrupt")
 			c.IsRunning = false
 
 			// Close file

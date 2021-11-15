@@ -5,9 +5,11 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"log"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/jszwec/csvutil"
@@ -22,7 +24,6 @@ const (
 
 var (
 	initConf datamgr.InitConf
-	rtt      *datamgr.RTT
 	csvl     *csvmgr.CSVLogger
 
 	records []*datamgr.RTT
@@ -31,6 +32,9 @@ var (
 )
 
 func main() {
+	pid := os.Getpid()
+	fmt.Println("PID:", pid)
+
 	rand.Seed(time.Now().UnixNano())
 	base := time.Now()
 
@@ -47,7 +51,7 @@ func main() {
 	// init csvlogger
 	csvl = csvmgr.NewCSVLogger(initConf)
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 100000; i++ {
 		current := time.Now()
 		record := &datamgr.RTT{
 			Seq:            int64(i),
@@ -74,17 +78,19 @@ func main() {
 		process(record)
 		//fmt.Printf("%#v\n", record)
 	}
+
+	for csvl.IsRunning {
+
+	}
 }
-
-
 
 func process(rtt *datamgr.RTT) {
 	appendRecord(rtt)
 }
 
-func appendRecord(rtt *datamgr.RTT) {
-	rtts := []datamgr.RTT{*rtt}
-	b, err := csvutil.Marshal(rtts)
+func appendRecord(record *datamgr.RTT) {
+	recordBundle := []datamgr.RTT{*record}
+	b, err := csvutil.Marshal(recordBundle)
 	if err != nil {
 		log.Println("error:", err)
 	}

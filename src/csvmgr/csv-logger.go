@@ -32,10 +32,6 @@ const (
 	baseLogsPath = "./tmp"
 )
 
-var (
-	newline = []byte{'\n'}
-)
-
 type CSVLogger struct {
 	LogFile   *os.File
 	LogWriter *bufio.Writer
@@ -43,22 +39,12 @@ type CSVLogger struct {
 	Append    chan []byte
 	Done      chan struct{}
 	Interrupt chan os.Signal
-}
-
-type Address struct {
-	City    string
-	Country string
-}
-
-type User struct {
-	Name string
-	Address
-	Age       int `csv:"age,omitempty"`
-	CreatedAt time.Time
+	IsRunning bool
 }
 
 func (c *CSVLogger) onMavlinkMessage() {
 	defer CloseFile()(c.LogFile)
+	c.IsRunning = true
 
 	for {
 		select {
@@ -81,6 +67,7 @@ func (c *CSVLogger) onMavlinkMessage() {
 			FlushWriter()(c.LogWriter)
 		case <-c.Interrupt:
 			log.Println("onEvent-> interrupt")
+			c.IsRunning = false
 
 			// Close file
 			select {
